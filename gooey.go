@@ -3,9 +3,16 @@ package gooey
 
 import (
     "fmt"
+    "runtime"
     "github.com/go-gl/gl/v2.1/gl"
     "github.com/go-gl/glfw/v3.1/glfw"
 )
+
+func init() {
+    // GLFW examples do this because some glfw calls (and probably all gl calls) need
+    // to run on the main thread.
+    runtime.LockOSThread()
+}
 
 type Element struct {
     name string
@@ -42,10 +49,6 @@ func (w *Element) SetName(name string) {
 func (w *Element) Render() {
     fmt.Println("RENDER: ", w)
 }
-
-
-
-
 
 func Init() {
     err := glfw.Init()
@@ -99,7 +102,6 @@ func Run(window *Window) {
         glfw.PollEvents()
     }
 }
-
 
 func setupScene(width int, height int) {
     gl.Disable(gl.DEPTH_TEST)
