@@ -14,40 +14,61 @@ func init() {
     runtime.LockOSThread()
 }
 
+//------------------------------------------------------
+// COLOR
+//------------------------------------------------------
+type Color struct {
+    R float32
+    G float32
+    B float32
+    A float32
+}
+
+
+//------------------------------------------------------
+// ELEMENT
+//------------------------------------------------------
 type Element struct {
     name string
-    x float64
-    y float64
-    width float64
-    height float64
+    x float32
+    y float32
+    width float32
+    height float32
+    color Color
 }
 
-// Define custom interfaces for Element types:
-type Named interface {
-    Name() string
-    SetName(name string)
+func (e *Element) String() string {
+    return fmt.Sprintf("Element [%s] of size (%f,%f)", e.name, e.width, e.height)
 }
 
-type Renderable interface {
-    Render()
+func (e *Element) Name() string {
+    return e.name
 }
 
-// Implement Stringer interface:
-func (w *Element) String() string {
-    return fmt.Sprintf("Element [%s] of size (%f,%f)", w.name, w.width, w.height)
+func (e *Element) SetName(name string) {
+    e.name = name
 }
 
-// Implement Named interface:
-func (w *Element) Name() string {
-    return w.name
-}
-func (w *Element) SetName(name string) {
-    w.name = name
+func (e *Element) SetPosition(x float32, y float32) {
+    e.x = x
+    e.y = y
 }
 
-// Implement Renderable interface:
-func (w *Element) Render() {
-    fmt.Println("RENDER: ", w)
+func (e *Element) SetColor(color Color) {
+    e.color = color
+}
+
+func (e *Element) Render() {
+
+    gl.Color4f(e.color.R, e.color.G, e.color.B, e.color.A)
+    gl.Begin(gl.QUADS)
+
+    gl.Vertex3f(e.x, e.y, 0)
+    gl.Vertex3f(e.x, e.y + e.height, 0)
+    gl.Vertex3f(e.x + e.width, e.y + e.height, 0)
+    gl.Vertex3f(e.x + e.width, e.y, 0)
+
+    gl.End()
 }
 
 func Init() {
@@ -61,12 +82,43 @@ func Terminate() {
     glfw.Terminate()
 }
 
+
+
+
+
+
+
+//------------------------------------------------------
+// GENERAL
+//------------------------------------------------------
 type Window struct {
     handle *glfw.Window
 
     width int
     height int
+
+    elements []*Element;
 }
+
+func (w *Window) NewElement() *Element {
+    e := &Element{}
+    e.width = 50
+    e.height = 50
+
+    e.color = Color{0.0, 0.0, 0.0, 1.0}
+
+    w.elements = append(w.elements, e)
+    return e
+}
+
+func (w *Window) Render() {
+    for i := 0; i < len(w.elements); i++ {
+        e := w.elements[i]
+        e.Render()
+    }
+}
+
+
 
 func (w *Window) Handle() *glfw.Window {
     return w.handle
@@ -98,6 +150,7 @@ func Run(window *Window) {
     setupScene(window.width, window.height)
     for !window.handle.ShouldClose() {
         drawScene()
+        window.Render()
         window.handle.SwapBuffers()
         glfw.PollEvents()
     }
@@ -132,16 +185,7 @@ func drawScene() {
 
     //gl.BindTexture(gl.TEXTURE_2D, texture)
 
-    gl.Color4f(1, 0, 0, 1)
 
-    gl.Begin(gl.QUADS)
-
-    gl.Vertex3f(50, 50, 0)
-    gl.Vertex3f(50, 100, 0)
-    gl.Vertex3f(100, 100, 0)
-    gl.Vertex3f(100, 50, 0)
-
-    gl.End()
 
 
 }
